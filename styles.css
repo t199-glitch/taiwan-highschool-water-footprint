@@ -93,6 +93,11 @@ input[type=range]::-webkit-slider-runnable-track {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+html.light input[type=range]::-webkit-slider-runnable-track {
+  background: #cbd5e1;
+  border: 1px solid #94a3b8;
+}
+
 input[type=range]::-webkit-slider-thumb {
   height: 24px;
   width: 24px;
@@ -140,56 +145,65 @@ input[type=range]::-moz-range-thumb {
 
 .choice-card.selected {
   border-color: #10b981 !important;
-  background-color: rgba(16, 185, 129, 0.12) !important;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
 }
 
-/* Light Theme Overrides */
+/* Light Theme Comprehensive Contrast Overrides */
 html.light body {
-  background-color: #f8fafc;
+  background-color: #f1f5f9;
   color: #0f172a;
 }
 
 html.light header {
-  background-color: rgba(255, 255, 255, 0.85);
-  border-color: #e2e8f0;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
+html.light .bubble {
+  background: radial-gradient(circle at 30% 30%, rgba(16, 185, 129, 0.15), rgba(14, 165, 233, 0.05));
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Cards & Panels in Light Mode */
 html.light #welcomeScreen > div,
 html.light #quizScreen > div,
 html.light #resultScreen > div,
-html.light #infoModal > div {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-color: #e2e8f0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-}
-
-html.light .text-white {
-  color: #0f172a !important;
-}
-
-html.light .text-slate-300,
-html.light .text-slate-200 {
-  color: #334155 !important;
-}
-
-html.light .text-slate-400 {
-  color: #64748b !important;
-}
-
+html.light #infoModal > div,
 html.light .bg-slate-800,
+html.light .bg-slate-800\/50,
 html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/70,
 html.light .bg-slate-800\/80,
 html.light .bg-slate-800\/90 {
-  background-color: #f1f5f9 !important;
+  background-color: #ffffff !important;
   border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
 }
 
 html.light .bg-slate-900,
 html.light .bg-slate-900\/60,
-html.light .bg-slate-900\/80 {
-  background-color: #ffffff !important;
+html.light .bg-slate-900\/70,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/90 {
+  background-color: #f8fafc !important;
   border-color: #e2e8f0 !important;
+}
+
+/* Text Contrasts in Light Mode */
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-100,
+html.light .text-slate-200,
+html.light .text-slate-300 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
 }
 
 html.light .border-slate-700,
@@ -199,7 +213,47 @@ html.light .border-slate-700\/60,
 html.light .border-slate-700\/70,
 html.light .border-slate-700\/80,
 html.light .border-slate-800 {
-  border-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Specific Light Mode Colors for Emerald / Ocean Highlights */
+html.light .text-emerald-400 {
+  color: #059669 !important;
+}
+
+html.light .text-emerald-300 {
+  color: #047857 !important;
+}
+
+html.light .text-ocean-400 {
+  color: #0284c7 !important;
+}
+
+html.light .bg-emerald-500\/10 {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+}
+
+html.light .bg-slate-700\/60,
+html.light .bg-slate-700\/50 {
+  background-color: #e2e8f0 !important;
+}
+
+/* Light Mode Option Cards */
+html.light .choice-card:not(.selected) {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+html.light .choice-card.selected {
+  background-color: #ecfdf5 !important;
+  border-color: #10b981 !important;
+  color: #065f46 !important;
+}
+
+html.light footer {
+  border-color: #cbd5e1;
+  color: #475569;
 }
 
 /* Animation Utilities */

@@ -16,9 +16,10 @@ const APP_DATA = {
           "label": "洗澡方式",
           "type": "single_choice",
           "icon": "bath",
+          "subtext": "💡 說明：選擇「淋浴」的水耗量將在下一題根據您的「淋浴時間」精確計算（每分鐘 10 公升），因此此處基礎固定加值為 0 公升。",
           "options": [
-            { "value": "shower", "label": "淋浴", "footprint_liters": 0, "emoji": "🚿" },
-            { "value": "bath", "label": "泡澡", "footprint_liters": 180, "emoji": "🛁" }
+            { "value": "shower", "label": "淋浴 (基礎0L，依洗澡時間計算)", "footprint_liters": 0, "emoji": "🚿" },
+            { "value": "bath", "label": "泡澡 (固定浴缸容量 +180L)", "footprint_liters": 180, "emoji": "🛁" }
           ]
         },
         {
@@ -168,9 +169,9 @@ function initDefaultAnswers() {
       if (q.type === 'number_slider') {
         userAnswers[q.id] = q.default;
       } else if (q.type === 'single_choice') {
-        userAnswers[q.id] = q.options[0].value; // set first as default
+        userAnswers[q.id] = q.options[0].value;
       } else if (q.type === 'multiple_choice') {
-        userAnswers[q.id] = [q.options[0].value]; // set first drink as default
+        userAnswers[q.id] = [q.options[0].value];
       }
     });
   });
@@ -219,14 +220,20 @@ function renderStep() {
     const qCard = document.createElement('div');
     qCard.className = 'bg-slate-800/70 border border-slate-700/60 rounded-3xl p-5 sm:p-6 backdrop-blur-xl shadow-lg space-y-4 animate-fadeIn';
     
-    // Question Label
+    // Question Header
     const qHeader = document.createElement('div');
-    qHeader.className = 'flex items-center space-x-2 border-b border-slate-700/40 pb-3';
+    qHeader.className = 'flex flex-col space-y-1.5 border-b border-slate-700/40 pb-3';
+    
+    let subtextHtml = q.subtext ? `<p class="text-xs text-amber-500 dark:text-amber-400 font-medium pl-10">${q.subtext}</p>` : '';
+
     qHeader.innerHTML = `
-      <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm">
-        ${idx + 1}
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-sm flex-shrink-0">
+          ${idx + 1}
+        </div>
+        <h4 class="font-bold text-base sm:text-lg text-white">${q.label}</h4>
       </div>
-      <h4 class="font-bold text-base sm:text-lg text-white">${q.label}</h4>
+      ${subtextHtml}
     `;
     qCard.appendChild(qHeader);
 
@@ -257,7 +264,7 @@ function renderStep() {
           </div>
           <span class="text-xs px-2.5 py-1 rounded-full font-mono font-semibold ${
             opt.footprint_liters > 500 
-              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' 
+              ? 'bg-amber-500/20 text-amber-400 dark:text-amber-300 border border-amber-500/30' 
               : 'bg-slate-700/60 text-slate-400'
           }">${footprintText}</span>
         `;
@@ -281,7 +288,7 @@ function renderStep() {
           </div>
           <div class="flex items-center space-x-1.5 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
             <span class="text-xs text-emerald-400 font-medium">耗水估計：</span>
-            <span id="sliderLiters_${q.id}" class="font-bold text-emerald-300 font-mono text-sm">+${currentCalculatedLiters} L</span>
+            <span id="sliderLiters_${q.id}" class="font-bold text-emerald-400 dark:text-emerald-300 font-mono text-sm">+${currentCalculatedLiters} L</span>
           </div>
         </div>
 
@@ -519,6 +526,10 @@ function showResults() {
 
 // Render Charts via Chart.js
 function renderCharts(categoryTotals, grandTotal) {
+  const isLight = document.documentElement.classList.contains('light');
+  const textColor = isLight ? '#334155' : '#e2e8f0';
+  const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+
   // Chart 1: Doughnut Chart (Category Breakdown)
   const ctxCategory = document.getElementById('categoryChart').getContext('2d');
   if (categoryChartInstance) categoryChartInstance.destroy();
@@ -599,12 +610,12 @@ function renderCharts(categoryTotals, grandTotal) {
       },
       scales: {
         x: {
-          grid: { color: 'rgba(255, 255, 255, 0.08)' },
-          ticks: { color: '#94a3b8' }
+          grid: { color: gridColor },
+          ticks: { color: textColor }
         },
         y: {
           grid: { display: false },
-          ticks: { color: '#e2e8f0', font: { weight: 'bold' } }
+          ticks: { color: textColor, font: { weight: 'bold' } }
         }
       }
     }
@@ -723,11 +734,11 @@ function renderActionTips() {
 // Download/Export Certificate Card as Image
 function downloadCertificate() {
   const cardElement = document.getElementById('certificateCard');
-  
-  // Temporarily customize card during capture
+  const isLight = document.documentElement.classList.contains('light');
+
   html2canvas(cardElement, {
     scale: 2,
-    backgroundColor: '#0f172a',
+    backgroundColor: isLight ? '#ffffff' : '#0f172a',
     useCORS: true
   }).then(canvas => {
     const image = canvas.toDataURL("image/png");
@@ -781,6 +792,12 @@ function toggleTheme() {
   } else {
     sunIcon.classList.add('hidden');
     moonIcon.classList.remove('hidden');
+  }
+
+  // Re-render chart text colors if results screen is visible
+  if (!document.getElementById('resultScreen').classList.contains('hidden')) {
+    const { categoryTotals, grandTotal } = calculateFootprints();
+    renderCharts(categoryTotals, grandTotal);
   }
 }
 
