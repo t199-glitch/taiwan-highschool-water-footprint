@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>臺灣高中生每日水足跡計算器 | 108課綱環境議題互動網站</title>
+  <meta name="description" content="專為臺灣高中生設計的每日水足跡計算器，透過生活化的情境問答，計算直接用水與飲食消費的隱形虛擬水足跡，促進環境永續意識。" />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            },
+            ocean: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+            },
+            slateDark: '#0f172a',
+          },
+          fontFamily: {
+            sans: ['"Noto Sans TC"', '"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          animation: {
+            'float-slow': 'float 6s ease-in-out infinite',
+            'pulse-subtle': 'pulseSubtle 3s infinite',
+            'wave': 'wave 8s linear infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-12px)' },
+            },
+            pulseSubtle: {
+              '0%, 100%': { opacity: 1 },
+              '50%': { opacity: 0.8 },
+            },
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- html2canvas CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans selection:bg-emerald-500 selection:text-white transition-colors duration-300 relative overflow-x-hidden">
+
+  <!-- Dynamic Background Animation (Bubbles) -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-30">
+    <div class="bubble bubble-1"></div>
+    <div class="bubble bubble-2"></div>
+    <div class="bubble bubble-3"></div>
+    <div class="bubble bubble-4"></div>
+  </div>
+
+  <!-- Header / Navigation Bar -->
+  <header class="sticky top-0 z-40 backdrop-blur-md bg-slate-900/80 border-b border-slate-800 transition-colors">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <!-- Logo & Title -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="resetApp()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-ocean-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i data-lucide="droplets" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-ocean-400 bg-clip-text text-transparent">
+            臺灣高中生水足跡計算器
+          </h1>
+          <p class="text-xs text-slate-400 font-normal">108課綱 · 永續地理與環境議題</p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center space-x-3">
+        <button onclick="toggleInfoModal()" class="px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center space-x-1.5 transition">
+          <i data-lucide="book-open" class="w-4 h-4 text-emerald-400"></i>
+          <span>什麼是虛擬水？</span>
+        </button>
+
+        <button id="themeToggle" onclick="toggleTheme()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="切換主題">
+          <i data-lucide="sun" id="themeIconSun" class="w-4 h-4 text-amber-400 hidden"></i>
+          <i data-lucide="moon" id="themeIconMoon" class="w-4 h-4 text-slate-300"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+
+    <!-- WELCOME / HERO VIEW -->
+    <section id="welcomeScreen" class="space-y-8 animate-fadeIn">
+      <!-- Hero Card -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-b from-slate-800/90 to-slate-900/90 border border-slate-700/60 p-6 sm:p-10 shadow-2xl backdrop-blur-xl">
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-ocean-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-2xl space-y-6">
+          <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-medium">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>測測看！你今天默默「吃」掉與使用了多少水？</span>
+          </div>
+
+          <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight text-white">
+            你知道喝一杯珍珠奶茶，<br class="hidden sm:inline" />
+            背後藏著 <span class="bg-gradient-to-r from-emerald-400 to-ocean-400 bg-clip-text text-transparent">500 公升</span> 的隱形水嗎？
+          </h2>
+
+          <p class="text-slate-300 text-base sm:text-lg leading-relaxed font-light">
+            我們每天洗澡、刷牙使用的水只是「直接水足跡」。而吃牛肉便當、喝手搖飲、用影印紙背後所消耗的大量水資源，稱為<strong class="text-emerald-400 font-semibold">「虛擬水 (Virtual Water)」</strong>。這份問卷專為臺灣高中生一日校園與生活設計，花費不到 2 分鐘，就能揭開你的水足跡秘密！
+          </p>
+
+          <!-- Quick Preview Grid -->
+          <div class="grid grid-cols-3 gap-3 pt-2">
+            <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-3 text-center">
+              <div class="text-2xl mb-1">🚿</div>
+              <div class="text-xs font-semibold text-slate-300">衛浴洗滌</div>
+              <div class="text-[10px] text-slate-400">直接水足跡</div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-3 text-center">
+              <div class="text-2xl mb-1">🧋</div>
+              <div class="text-xs font-semibold text-slate-300">便當與手搖</div>
+              <div class="text-[10px] text-slate-400">飲食虛擬水</div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-3 text-center">
+              <div class="text-2xl mb-1">📄</div>
+              <div class="text-xs font-semibold text-slate-300">試卷與新衣</div>
+              <div class="text-[10px] text-slate-400">消費虛擬水</div>
+            </div>
+          </div>
+
+          <div class="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <button onclick="startQuiz()" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-ocean-500 hover:from-emerald-400 hover:to-ocean-400 text-white font-bold text-lg shadow-lg shadow-emerald-500/25 flex items-center justify-center space-x-3 group transition-all duration-300 transform hover:-translate-y-0.5">
+              <span>立即開始計算</span>
+              <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+            
+            <button onclick="toggleInfoModal()" class="px-6 py-4 rounded-2xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-semibold border border-slate-700 flex items-center justify-center space-x-2 transition">
+              <i data-lucide="help-circle" class="w-5 h-5 text-emerald-400"></i>
+              <span>水足跡是甚麼？</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ ENGINE VIEW -->
+    <section id="quizScreen" class="hidden space-y-6">
+      <!-- Top Progress Bar & Live Counter Bar -->
+      <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-4 sm:p-5 backdrop-blur-xl shadow-lg sticky top-20 z-30">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <div class="flex items-center space-x-3">
+            <span id="categoryBadge" class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">
+              步驟 1/3
+            </span>
+            <h3 id="categoryTitle" class="text-base sm:text-lg font-bold text-white">
+              個人衛浴與清潔 (直接用水)
+            </h3>
+          </div>
+
+          <!-- Live Counter Indicator -->
+          <div class="flex items-center space-x-2 bg-slate-900/80 px-3.5 py-1.5 rounded-xl border border-slate-700/80">
+            <i data-lucide="waves" class="w-4 h-4 text-ocean-400 animate-pulse"></i>
+            <span class="text-xs text-slate-400">預估水足跡：</span>
+            <span id="liveCounter" class="text-base font-extrabold text-emerald-400 font-mono">0</span>
+            <span class="text-xs text-slate-400">公升</span>
+          </div>
+        </div>
+
+        <!-- Progress Bar Track -->
+        <div class="w-full bg-slate-700/50 rounded-full h-2.5 overflow-hidden">
+          <div id="progressBar" class="bg-gradient-to-r from-emerald-500 to-ocean-400 h-full rounded-full transition-all duration-500 ease-out" style="width: 33%"></div>
+        </div>
+      </div>
+
+      <!-- Question Cards Container -->
+      <div id="questionsContainer" class="space-y-6">
+        <!-- Rendered dynamically via app.js -->
+      </div>
+
+      <!-- Bottom Navigation Controls -->
+      <div class="flex items-center justify-between pt-4">
+        <button id="prevBtn" onclick="prevStep()" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold border border-slate-700 flex items-center space-x-2 transition disabled:opacity-40 disabled:cursor-not-allowed">
+          <i data-lucide="chevron-left" class="w-5 h-5"></i>
+          <span>上一步</span>
+        </button>
+
+        <button id="nextBtn" onclick="nextStep()" class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-ocean-500 hover:from-emerald-400 hover:to-ocean-400 text-white font-bold shadow-lg shadow-emerald-500/20 flex items-center space-x-2 transition transform hover:-translate-y-0.5">
+          <span id="nextBtnText">下一步</span>
+          <i data-lucide="chevron-right" id="nextBtnIcon" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- RESULTS DASHBOARD VIEW -->
+    <section id="resultScreen" class="hidden space-y-8 animate-fadeIn">
+      <!-- Result Banner Card -->
+      <div id="certificateCard" class="relative overflow-hidden rounded-3xl bg-gradient-to-b from-slate-800/90 to-slate-900/90 border border-slate-700/80 p-6 sm:p-10 shadow-2xl backdrop-blur-xl">
+        <div class="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+          <i data-lucide="droplet" class="w-64 h-64 text-emerald-400"></i>
+        </div>
+
+        <div class="relative z-10 space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700/60 pb-6">
+            <div>
+              <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-700/60 text-slate-300 text-xs font-semibold mb-2">
+                <i data-lucide="award" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span>臺灣高中生每日水足跡診斷報告</span>
+              </div>
+              <h2 class="text-2xl sm:text-4xl font-extrabold text-white">
+                你的每日總水足跡：<span id="resultTotalLiters" class="bg-gradient-to-r from-emerald-400 to-ocean-400 bg-clip-text text-transparent font-mono text-3xl sm:text-5xl">0</span> 公升
+              </h2>
+            </div>
+
+            <!-- Badge Tiers -->
+            <div id="badgeContainer" class="flex items-center space-x-3 px-5 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
+              <span id="resultBadgeIcon" class="text-3xl">🏆</span>
+              <div>
+                <div id="resultBadge" class="font-extrabold text-lg sm:text-xl text-white">節水省長</div>
+                <div class="text-xs text-emerald-400 font-medium">個人水足跡評定</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary & Equivalent Comparisons -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2 bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5 space-y-2">
+              <h4 class="text-sm font-semibold text-emerald-400 flex items-center space-x-1.5">
+                <i data-lucide="message-square" class="w-4 h-4"></i>
+                <span>診斷評價</span>
+              </h4>
+              <p id="resultSummary" class="text-slate-200 text-base leading-relaxed">
+                載入中...
+              </p>
+              <div class="pt-2">
+                <p id="resultTip" class="text-xs sm:text-sm text-slate-400 bg-slate-900/60 p-3 rounded-xl border border-slate-700/40">
+                  載入中...
+                </p>
+              </div>
+            </div>
+
+            <!-- Equivalence Box -->
+            <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5 flex flex-col justify-between space-y-3">
+              <h4 class="text-sm font-semibold text-ocean-400 flex items-center space-x-1.5">
+                <i data-lucide="scale" class="w-4 h-4"></i>
+                <span>生活形象化換算</span>
+              </h4>
+              <div class="space-y-3 my-auto">
+                <div class="flex items-center justify-between border-b border-slate-700/40 pb-2">
+                  <span class="text-xs text-slate-300 flex items-center gap-1.5">🥤 600ml 寶特瓶</span>
+                  <span id="bottlesCount" class="font-bold text-white font-mono text-base">0 瓶</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-slate-300 flex items-center gap-1.5">🛁 180L 家庭浴缸</span>
+                  <span id="tubsCount" class="font-bold text-white font-mono text-base">0 缸</span>
+                </div>
+              </div>
+              <div class="text-[10px] text-slate-400 text-right">相當於一天消耗量</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visualization Charts Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Chart 1: Category Breakdown (Doughnut Chart) -->
+        <div class="bg-slate-800/80 border border-slate-700/70 rounded-3xl p-6 backdrop-blur-xl shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg text-white flex items-center space-x-2">
+              <i data-lucide="pie-chart" class="w-5 h-5 text-emerald-400"></i>
+              <span>水足跡來源結構比例</span>
+            </h3>
+            <span class="text-xs text-slate-400">單位：公升</span>
+          </div>
+          <div class="relative h-64 w-full flex items-center justify-center">
+            <canvas id="categoryChart"></canvas>
+          </div>
+          <div id="chartLegend" class="grid grid-cols-3 gap-2 mt-4 text-center text-xs">
+            <!-- Rendered by js -->
+          </div>
+        </div>
+
+        <!-- Chart 2: Comparison Bar Chart (Student vs Average vs Target) -->
+        <div class="bg-slate-800/80 border border-slate-700/70 rounded-3xl p-6 backdrop-blur-xl shadow-xl flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg text-white flex items-center space-x-2">
+              <i data-lucide="bar-chart-3" class="w-5 h-5 text-ocean-400"></i>
+              <span>與臺灣高中生平均值比較</span>
+            </h3>
+            <span class="text-xs text-slate-400">日消耗 (L)</span>
+          </div>
+          <div class="relative h-64 w-full">
+            <canvas id="comparisonChart"></canvas>
+          </div>
+          <p class="text-xs text-slate-400 text-center mt-4">
+            💡 註：臺灣高中生平均每日總水足跡約 2,000~2,500 公升 (含飲食隱形水)
+          </p>
+        </div>
+      </div>
+
+      <!-- Itemized Breakdown Table & Action Plan -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Detailed Breakdown -->
+        <div class="md:col-span-2 bg-slate-800/80 border border-slate-700/70 rounded-3xl p-6 backdrop-blur-xl shadow-xl space-y-4">
+          <h3 class="font-bold text-lg text-white flex items-center space-x-2">
+            <i data-lucide="list-checks" class="w-5 h-5 text-teal-400"></i>
+            <span>生活項目水足跡細項清單</span>
+          </h3>
+          <div id="breakdownList" class="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+            <!-- Dynamic items rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Action Plan Suggestions -->
+        <div class="bg-gradient-to-br from-slate-800/90 to-emerald-950/40 border border-emerald-500/30 rounded-3xl p-6 backdrop-blur-xl shadow-xl space-y-4">
+          <h3 class="font-bold text-lg text-white flex items-center space-x-2">
+            <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i>
+            <span>省水達人特攻計畫 💡</span>
+          </h3>
+          <p class="text-xs text-slate-300">根據你的選擇，為你量身打造的減水行動方案：</p>
+
+          <div id="actionTipsList" class="space-y-3 text-xs sm:text-sm">
+            <!-- Dynamic action tips -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons (Share / Restart) -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
+        <button onclick="downloadCertificate()" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transition transform hover:-translate-y-0.5">
+          <i data-lucide="download" class="w-5 h-5"></i>
+          <span>下載/分享水足跡證書圖</span>
+        </button>
+
+        <button onclick="resetApp()" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold border border-slate-700 flex items-center justify-center space-x-2 transition">
+          <i data-lucide="rotate-ccw" class="w-5 h-5 text-ocean-400"></i>
+          <span>重新測驗 / 修改選項</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Educational Info Modal -->
+  <div id="infoModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl relative">
+      <button onclick="toggleInfoModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white p-2 rounded-full hover:bg-slate-800 transition">
+        <i data-lucide="x" class="w-6 h-6"></i>
+      </button>
+
+      <div class="flex items-center space-x-3">
+        <div class="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+          <i data-lucide="globe" class="w-7 h-7"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-white">什麼是「水足跡 (Water Footprint)」？</h3>
+          <p class="text-xs text-slate-400">地理與環境議題知識講堂</p>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-sm text-slate-300 leading-relaxed font-light">
+        <p>
+          <strong class="text-emerald-400 font-semibold">水足跡 (Water Footprint)</strong> 是指個人、社群或企業在生產產品與服務時，直接與間接所消耗與污染的淡水資源總量。
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60">
+            <h4 class="font-bold text-emerald-400 mb-1 flex items-center gap-1.5">
+              🚿 直接水足跡 (Direct Water)
+            </h4>
+            <p class="text-xs text-slate-300">水龍頭流出來看得見的水。例如：洗澡、刷牙、沖馬桶、洗衣服、洗手等。</p>
+          </div>
+
+          <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60">
+            <h4 class="font-bold text-ocean-400 mb-1 flex items-center gap-1.5">
+              🍔 隱形虛擬水 (Virtual Water)
+            </h4>
+            <p class="text-xs text-slate-300">食物與物品在生產過程（作物灌溉、飼料餵養、加工製造）中所消耗看不見的水！</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-700/40 space-y-2">
+          <h4 class="font-semibold text-white">驚人的虛擬水冷知識 💡</h4>
+          <ul class="list-disc list-inside space-y-1 text-xs text-slate-300">
+            <li><strong>1 公斤牛肉：</strong> 耗費約 15,400 公升水（飼料種植與牛隻飲用）。</li>
+            <li><strong>1 杯珍珠奶茶：</strong> 約 500 公升水（茶葉、手搖配料、鮮奶生產）。</li>
+            <li><strong>1 張 A4 紙：</strong> 約 10 公升水（造紙廠清洗與蒸煮漿料）。</li>
+            <li><strong>1 件棉質 T 恤：</strong> 約 2,700 公升水（棉花種植與染色）。</li>
+          </ul>
+        </div>
+
+        <p class="text-xs text-slate-400 italic">
+          根據水資源網路 (Water Footprint Network, WFN) 與 108課綱地理學科議題，了解個人水足跡是迈向永續生活第一步！
+        </p>
+      </div>
+
+      <div class="pt-2 flex justify-end">
+        <button onclick="toggleInfoModal()" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition">
+          我知道了
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-16 border-t border-slate-800 py-8 text-center text-xs text-slate-400 relative z-10">
+    <div class="max-w-4xl mx-auto px-4 space-y-2">
+      <p>臺灣高中生每日水足跡計算器 · 108 課綱社會與環境議題地理教材示範</p>
+      <p class="text-[11px] text-slate-400">數據參考 Water Footprint Network (WFN) 與台灣環境資訊協會水資源統計數據</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
